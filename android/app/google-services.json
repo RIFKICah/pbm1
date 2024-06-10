@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "215460483742",
+    "project_id": "jajananku-218a5",
+    "storage_bucket": "jajananku-218a5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215460483742:android:98875dc0b47f174798618f",
+        "android_client_info": {
+          "package_name": "com.example.jajananku"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgzeIJAPbtK7AWIi0U3xGSPif7MbFhV10"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
