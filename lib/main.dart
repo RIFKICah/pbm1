@@ -1,10 +1,6 @@
-
-// import 'package:rehan/daftarresto.dart';
-// import 'package:rehan/homepage.dart';
-// import 'package:rehan/nyobagridvies.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:jajananku/homepage.dart';
 import 'daftarresto.dart';
 
 void main() async {
@@ -21,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: DaftarResto(),
+      home: Homepage(),
     );
   }
 }

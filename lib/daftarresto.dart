@@ -1,23 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: DaftarResto(),
-    );
-  }
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firestore_services.dart'; // Import FirestoreServices
+import 'package:jajananku/homepage.dart';
 
 class DaftarResto extends StatefulWidget {
   @override
@@ -35,25 +22,39 @@ class _DaftarRestoState extends State<DaftarResto> {
   File? _selectedImage;
 
   Future<void> _submitData() async {
-    CollectionReference foods = FirebaseFirestore.instance.collection('foods');
-    await foods.add({
-      'nama_makanan': _namaMakananController.text,
-      'link_produk': _linkProdukController.text,
-      'link_map': _linkMapController.text,
-      'deskripsi': _deskripsiController.text,
-      'jam_buka': _jamBukaController.text,
-      'jam_tutup': _jamTutupController.text,
-      'cuaca': _selectedWeather ?? 'Panas',
-      'image_url': '',  // Ini nanti akan diisi dengan URL gambar yang diunggah
-    }).then((value) {
+    if (_selectedImage != null) {
+      try {
+        String imageUrl = await FirestoreServices.uploadImage(_selectedImage!);
+
+        // Simpan data ke Firestore
+        await FirebaseFirestore.instance.collection('resto').add({
+          'namaMakanan': _namaMakananController.text,
+          'linkProduk': _linkProdukController.text,
+          'linkMap': _linkMapController.text,
+          'deskripsi': _deskripsiController.text,
+          'jamBuka': _jamBukaController.text,
+          'jamTutup': _jamTutupController.text,
+          'selectedWeather': _selectedWeather,
+          'imageUrl': imageUrl,
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Data berhasil disimpan dengan URL gambar: $imageUrl'),
+        ));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Homepage()),
+        );
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Gagal menyimpan data: $error'),
+        ));
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Data berhasil disimpan'),
+        content: Text('Silakan pilih gambar terlebih dahulu'),
       ));
-    }).catchError((error) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Gagal menyimpan data: $error'),
-      ));
-    });
+    }
   }
 
   Future<void> _pickImage() async {
@@ -68,22 +69,66 @@ class _DaftarRestoState extends State<DaftarResto> {
     });
   }
 
+  Future<void> _saveDataToTextFile(String imageUrl) async {
+    // Construct data string
+    String data = '''
+      Nama Makanan: ${_namaMakananController.text}
+      Link Produk: ${_linkProdukController.text}
+      Link Map Lokasi Restoran: ${_linkMapController.text}
+      Deskripsi: ${_deskripsiController.text}
+      Jam Operasional Toko: ${_jamBukaController.text} - ${_jamTutupController.text}
+      Produk ini cocok untuk cuaca: ${_selectedWeather ?? 'Tidak ditentukan'}
+      URL Gambar: $imageUrl
+    ''';
+
+    try {
+      // Save data to text file
+
+      // Clear form fields
+      _clearFormFields();
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Data berhasil disimpan dalam file teks'),
+      ));
+    } catch (error) {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Gagal menyimpan data dalam file teks: $error'),
+      ));
+    }
+  }
+
+  void _clearFormFields() {
+    // Clear all form fields
+    _namaMakananController.clear();
+    _linkProdukController.clear();
+    _linkMapController.clear();
+    _deskripsiController.clear();
+    _jamBukaController.clear();
+    _jamTutupController.clear();
+    setState(() {
+      _selectedWeather = null;
+      _selectedImage = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.red,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              // Define the action when the settings icon is pressed
-            },
-          ),
-          SizedBox(width: 20),
-        ],
         iconTheme: IconThemeData(
           color: Colors.white,
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => Homepage()),
+            );
+          },
         ),
       ),
       body: Center(
@@ -322,7 +367,7 @@ class _DaftarRestoState extends State<DaftarResto> {
                       onPressed: _submitData,
                       child: Text('Simpan Data'),
                       style: ElevatedButton.styleFrom(
-                        primary: Colors.red,
+                        iconColor: Colors.red,
                       ),
                     ),
                   ),
